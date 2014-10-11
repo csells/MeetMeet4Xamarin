@@ -172,7 +172,7 @@ namespace MeetMeet.WinPhone {
         // Fall back to the font of the neutral language if the Display
         // language of the phone is not supported.
         //
-        // If a compiler error is hit then ResourceLanguage is missing from
+        // If a compiler progressText is hit then ResourceLanguage is missing from
         // the resource file.
         RootFrame.Language = XmlLanguage.GetLanguage(AppResources.ResourceLanguage);
 
@@ -180,7 +180,7 @@ namespace MeetMeet.WinPhone {
         // on the ResourceFlowDirection resource string for each
         // supported language.
         //
-        // If a compiler error is hit then ResourceFlowDirection is missing from
+        // If a compiler progressText is hit then ResourceFlowDirection is missing from
         // the resource file.
         FlowDirection flow = (FlowDirection)Enum.Parse(typeof(FlowDirection), AppResources.ResourceFlowDirection);
         RootFrame.FlowDirection = flow;

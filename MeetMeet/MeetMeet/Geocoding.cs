@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Xamarin.Forms;
 
 namespace MeetMeet {
   public class Geocode {
@@ -12,11 +15,18 @@ namespace MeetMeet {
     }
   }
 
-  // from: http://stackoverflow.com/questions/17390133/parsing-google-maps-api-geocode-server-side-or-client-side
-  public static class Geocoder {
-    public static async Task<Geocode> GetGeocodeForLocation(string location) {
-      // e.g.
-      // http://maps.googleapis.com/maps/api/geocode/xml?address=portland,%20or
+  // TODO: show the icon
+  public class Place {
+    public string Name { get; set; }
+    public string Vicinity { get; set; }
+    public Geocode Location { get; set; }
+    public Uri Icon { get; set; }
+  }
+
+  public class Geocoder {
+    public async Task<Geocode> GetGeocodeForLocation(string location) {
+      // from: http://stackoverflow.com/questions/17390133/parsing-google-maps-api-geocode-server-side-or-client-side
+      // e.g. http://maps.googleapis.com/maps/api/geocode/xml?address=portland,%20or
       string request = string.Format("http://maps.googleapis.com/maps/api/geocode/xml?address={0}", Uri.EscapeUriString(location));
       var xml = await (new HttpClient()).GetStringAsync(request);
       var loc = XDocument.Parse(xml).Element("GeocodeResponse").Element("result").Element("geometry").Element("location");
@@ -27,15 +37,9 @@ namespace MeetMeet {
       };
     }
 
-    //static Geocode GetMiddleGeocode(Geocode geocode1, Geocode geocode2) {
-    //  return new Geocode {
-    //    Latitude = (geocode1.Latitude + geocode2.Latitude) / 2,
-    //    Longitude = (geocode1.Longitude + geocode2.Longitude) / 2
-    //  };
-    //}
+    public Geocode GetGreatCircleMidpoint(Geocode g1, Geocode g2) {
+      // from http://stackoverflow.com/questions/6830959/c-sharp-find-midpoint-of-two-latitude-longitudes
 
-    // http://stackoverflow.com/questions/6830959/c-sharp-find-midpoint-of-two-latitude-longitudes
-    public static Geocode GetGreatCircleMidpoint(Geocode g1, Geocode g2) {
       // convert to radians
       var dLon = deg2rad(g2.Longitude - g1.Longitude);
       var lat1 = deg2rad(g1.Latitude);
@@ -63,18 +67,91 @@ namespace MeetMeet {
       return rad / (Math.PI / 180.0);
     }
 
-    //static internal Uri GetMiddleUrl(string you, string them, string mode) {
-    //  // get lat/long in the middle
-    //  Geocode youGeocode = GetGeocodeForLocation(you);
-    //  Geocode themGeocode = GetGeocodeForLocation(them);
-    //  Geocode middleGeocode = GetMiddleGeocode(youGeocode, themGeocode);
+    public Task<IEnumerable<string>> GetPlacesAutocomplete(string search) {
+      // from: https://developers.google.com/places/documentation/autocomplete
 
-    //  // construct URL for "food near " calculated lat/long
-    //  //string url = string.Format("http://maps.google.com/?q={0} near {1},{2}", mode, middleGeocode.Latitude, middleGeocode.Longitude);
-    //  // NOTE: updated for new Google maps ala http://www.jsonline.com/blogs/news/247119811.html
-    //  string url = string.Format("https://www.google.com/maps/search/{0} loc: {1},{2}", mode, middleGeocode.Latitude, middleGeocode.Longitude);
-    //  return new Uri(Uri.EscapeUriString(url));
-    //}
+      // TODO
+      throw new NotImplementedException();
+    }
+
+    public async Task<IEnumerable<Place>> GetNearbyPlaces(Geocode g, string keyword) {
+      // from: https://developers.google.com/places/documentation/search
+      // e.g. https://maps.googleapis.com/maps/api/place/nearbysearch/xml?location=46,-122&rankby=distance&keyword=coffee&key=AddYourOwnKeyHere
+      string request = string.Format("https://maps.googleapis.com/maps/api/place/nearbysearch/xml?location={0},{1}&rankby=distance&keyword={2}&key={3}", g.Latitude, g.Longitude, keyword, GetGoogleApiKey());
+      var xml = await (new HttpClient()).GetStringAsync(request);
+      var results = XDocument.Parse(xml).Element("PlaceSearchResponse").Elements("result");
+
+      var places = new List<Place>();
+      foreach (var result in results) {
+        var loc = result.Element("geometry").Element("location");
+        var icon = result.Element("icon").Value;
+        places.Add(new Place {
+          Name = result.Element("name").Value,
+          Icon = !string.IsNullOrWhiteSpace(icon) ? new Uri(icon) : null,
+          Vicinity = result.Element("vicinity").Value,
+          Location = new Geocode {
+            Latitude = double.Parse(loc.Element("lat").Value),
+            Longitude = double.Parse(loc.Element("lng").Value),
+          },
+        });
+      }
+
+      return places;
+    }
+
+    public void LaunchMapApp(Place place) {
+      var name = Uri.EscapeUriString(place.Name);
+
+#if __IOS__
+      // from https://developer.apple.com/library/ios/featuredarticles/iPhoneURLScheme_Reference/MapLinks/MapLinks.html
+      // e.g. http://maps.apple.com/?daddr=San+Francisco,+CA&saddr=cupertino
+      var loc = string.Format("{0},{1}", place.Location.Latitude, place.Location.Longitude);
+      var request = string.Format("http://maps.apple.com/maps?q={0}@{1}", name, loc);
+      //Device.OpenUri(new Uri(request));
+      MonoTouch.UIKit.UIApplication.SharedApplication.OpenUrl(new MonoTouch.Foundation.NSUrl(request));
+#elif __ANDROID__
+      // from: http://developer.android.com/guide/components/intents-common.html#Maps
+      // e.g. geo:0,0?q=34.99,-106.61(Treasure)
+      var loc = !string.IsNullOrWhiteSpace(place.Vicinity) ? Uri.EscapeUriString(place.Vicinity) : string.Format("{0},{1}", place.Location.Latitude, place.Location.Longitude);
+      var request = string.Format("geo:0,0?q={0}({1})", loc, name);
+      Device.OpenUri(new Uri(request));
+#elif WINDOWS_PHONE
+      // from http://msdn.microsoft.com/en-us/library/windows/apps/jj635237.aspx
+      // e.g. bingmaps:?collection=point.36.116584_-115.176753_Caesars%20Palace
+      var loc = string.Format("{0}_{1}", place.Location.Latitude, place.Location.Longitude);
+      var request = string.Format("bingmaps:?collection=point.{0}_{1}", loc, name);
+      Windows.System.Launcher.LaunchUriAsync(new Uri(request));
+#else
+    throw new Exception("No device type compile-time directive found");
+#endif
+    }
+
+    string GetGoogleApiKey() {
+      // from http://developer.xamarin.com/guides/cross-platform/xamarin-forms/working-with/files/
+      var type = this.GetType();
+      var prefix = type.Namespace + ".";
+#if __IOS__
+      prefix += "iOS";
+#elif __ANDROID__
+      prefix += "Droid";
+#elif WINDOWS_PHONE
+      prefix += "WinPhone";
+#else
+      throw new Exception("No device type compile-time directive found");
+#endif
+
+      // NOTE: expects Embedded Resource named config.xml of the following format:
+      // <?xml version="1.0" encoding="utf-8" ?>
+      // <config>
+      //   <google-api-key>YourGoogleApiKeyHere</google-api-key>
+      // </config>
+      using (var stream = type.Assembly.GetManifestResourceStream(prefix + ".config.xml"))
+      using (var reader = new StreamReader(stream)) {
+        var doc = XDocument.Parse(reader.ReadToEnd());
+        return doc.Element("config").Element("google-api-key").Value;
+      }
+    }
 
   }
+
 }

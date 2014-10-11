@@ -11,5 +11,10 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)App.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Geocoding.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)OutputPage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InputPage.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)config.xml" />
   </ItemGroup>
 </Project>
