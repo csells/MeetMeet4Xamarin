@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Xamarin.Forms;
+using Xamarin.Geolocation;
 
 namespace MeetMeet {
   public class Geocode {
@@ -15,7 +16,6 @@ namespace MeetMeet {
     }
   }
 
-  // TODO: show the icon
   public class Place {
     public string Name { get; set; }
     public string Vicinity { get; set; }
@@ -67,11 +67,20 @@ namespace MeetMeet {
       return rad / (Math.PI / 180.0);
     }
 
-    public Task<IEnumerable<string>> GetPlacesAutocomplete(string search) {
+    public async Task<IEnumerable<string>> GetPlacesAutocomplete(string search) {
       // from: https://developers.google.com/places/documentation/autocomplete
+      // e.g. https://maps.googleapis.com/maps/api/place/autocomplete/xml?input=Kirk&key=AddYourOwnKeyHere
+      string request = string.Format("https://maps.googleapis.com/maps/api/place/autocomplete/xml?input={0}&key={1}", search, GetGoogleApiKey());
+      var xml = await (new HttpClient()).GetStringAsync(request);
+      var results = XDocument.Parse(xml).Element("AutocompletionResponse").Elements("prediction");
 
-      // TODO
-      throw new NotImplementedException();
+      var suggestions = new List<string>();
+      foreach (var result in results) {
+        var suggestion = result.Element("description").Value;
+        suggestions.Add(suggestion);
+      }
+
+      return suggestions;
     }
 
     public async Task<IEnumerable<Place>> GetNearbyPlaces(Geocode g, string keyword) {
@@ -99,7 +108,7 @@ namespace MeetMeet {
       return places;
     }
 
-    public void LaunchMapApp(Place place) {
+    public async void LaunchMapApp(Place place) {
       var name = Uri.EscapeUriString(place.Name);
 
 #if __IOS__
@@ -120,38 +129,48 @@ namespace MeetMeet {
       // e.g. bingmaps:?collection=point.36.116584_-115.176753_Caesars%20Palace
       var loc = string.Format("{0}_{1}", place.Location.Latitude, place.Location.Longitude);
       var request = string.Format("bingmaps:?collection=point.{0}_{1}", loc, name);
-      Windows.System.Launcher.LaunchUriAsync(new Uri(request));
+      await Windows.System.Launcher.LaunchUriAsync(new Uri(request));
 #else
-    throw new Exception("No device type compile-time directive found");
+      throw new Exception("No device type compile-time directive found");
 #endif
     }
 
     string GetGoogleApiKey() {
       // from http://developer.xamarin.com/guides/cross-platform/xamarin-forms/working-with/files/
-      var type = this.GetType();
-      var prefix = type.Namespace + ".";
-#if __IOS__
-      prefix += "iOS";
-#elif __ANDROID__
-      prefix += "Droid";
-#elif WINDOWS_PHONE
-      prefix += "WinPhone";
-#else
-      throw new Exception("No device type compile-time directive found");
-#endif
-
       // NOTE: expects Embedded Resource named config.xml of the following format:
       // <?xml version="1.0" encoding="utf-8" ?>
       // <config>
       //   <google-api-key>YourGoogleApiKeyHere</google-api-key>
       // </config>
-      using (var stream = type.Assembly.GetManifestResourceStream(prefix + ".config.xml"))
+      var type = this.GetType();
+      var resource = type.Namespace + "." + Device.OnPlatform("iOS", "Droid", "WinPhone") + ".config.xml";
+      using (var stream = type.Assembly.GetManifestResourceStream(resource))
       using (var reader = new StreamReader(stream)) {
         var doc = XDocument.Parse(reader.ReadToEnd());
         return doc.Element("config").Element("google-api-key").Value;
       }
     }
 
+    public async Task<Geocode> GetCurrentLocation() {
+      // from https://components.xamarin.com/gettingstarted/xamarin.mobile
+#if __ANDROID__
+      Geolocator locator = null; // TODO new Geolocator(something!);
+#else
+      var locator = new Geolocator();
+#endif
+
+      var pos = await locator.GetPositionAsync(10000);
+      return new Geocode { Latitude = pos.Latitude, Longitude = pos.Longitude };
+    }
+
+    public async Task<string> GetAddressForLocation(Geocode loc) {
+      // from https://developers.google.com/maps/documentation/geocoding/#ReverseGeocoding
+      // e.g. https://maps.googleapis.com/maps/api/geocode/xml?latlng=40.714224,-73.961452
+      string request = string.Format("https://maps.googleapis.com/maps/api/geocode/xml?latlng={0},{1}", loc.Latitude, loc.Longitude);
+      var xml = await (new HttpClient()).GetStringAsync(request);
+      var address = XDocument.Parse(xml).Element("GeocodeResponse").Element("result").Element("formatted_address").Value;
+      return address;
+    }
   }
 
 }

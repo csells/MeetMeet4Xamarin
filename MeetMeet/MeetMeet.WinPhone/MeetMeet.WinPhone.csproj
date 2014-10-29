@@ -158,8 +158,21 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Acr.XamForms.Mobile">
+      <HintPath>..\..\packages\Acr.XamForms.Mobile.1.5\lib\wp8\Acr.XamForms.Mobile.dll</HintPath>
+    </Reference>
+    <Reference Include="Acr.XamForms.Mobile.WindowsPhone">
+      <HintPath>..\..\packages\Acr.XamForms.Mobile.1.5\lib\wp8\Acr.XamForms.Mobile.WindowsPhone.dll</HintPath>
+    </Reference>
+    <Reference Include="ExifLib">
+      <HintPath>..\..\packages\ExifLib.PCL.1.0.0\lib\portable-net45+sl50+win+WindowsPhoneApp81+wp80+MonoAndroid10+MonoTouch10\ExifLib.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Phone.Controls.Toolkit">
       <HintPath>..\..\packages\WPtoolkit.4.2013.08.16\lib\wp8\Microsoft.Phone.Controls.Toolkit.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Newtonsoft.Json.6.0.6\lib\portable-net40+sl5+wp80+win8+wpa81\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System.Net.Http, Version=1.5.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -173,9 +186,18 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Microsoft.Net.Http.2.2.28\lib\sl4-windowsphone71\System.Net.Http.Primitives.dll</HintPath>
     </Reference>
+    <Reference Include="WPControls">
+      <HintPath>..\..\packages\WPControls.1.5.2\lib\wp8\WPControls.dll</HintPath>
+    </Reference>
     <Reference Include="Xamarin.Forms.Core, Version=1.2.3.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Xamarin.Forms.1.2.3.6257\lib\WP80\Xamarin.Forms.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Xamarin.Forms.Labs">
+      <HintPath>..\..\packages\Xamarin.Forms.Labs.1.2.1-pre1\lib\wp8\Xamarin.Forms.Labs.dll</HintPath>
+    </Reference>
+    <Reference Include="Xamarin.Forms.Labs.WP8">
+      <HintPath>..\..\packages\Xamarin.Forms.Labs.1.2.1-pre1\lib\wp8\Xamarin.Forms.Labs.WP8.dll</HintPath>
     </Reference>
     <Reference Include="Xamarin.Forms.Platform.WP8, Version=1.2.3.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -184,6 +206,10 @@
     <Reference Include="Xamarin.Forms.Xaml, Version=1.2.3.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Xamarin.Forms.1.2.3.6257\lib\WP80\Xamarin.Forms.Xaml.dll</HintPath>
+    </Reference>
+    <Reference Include="Xamarin.Mobile, Version=0.7.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Acr.XamForms.Mobile.1.5\lib\wp8\Xamarin.Mobile.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
