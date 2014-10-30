@@ -26,8 +26,6 @@ namespace MeetMeet.Droid
 		
 		public static void UpdateIdValues()
 		{
-			global::Acr.XamForms.Mobile.Droid.Resource.String.ApplicationName = global::MeetMeet.Droid.Resource.String.ApplicationName;
-			global::Acr.XamForms.Mobile.Droid.Resource.String.Hello = global::MeetMeet.Droid.Resource.String.Hello;
 			global::Xamarin.Forms.Labs.Droid.Resource.Color.calendar_active_month_bg = global::MeetMeet.Droid.Resource.Color.calendar_active_month_bg;
 			global::Xamarin.Forms.Labs.Droid.Resource.Color.calendar_bg = global::MeetMeet.Droid.Resource.Color.calendar_bg;
 			global::Xamarin.Forms.Labs.Droid.Resource.Color.calendar_divider = global::MeetMeet.Droid.Resource.Color.calendar_divider;
@@ -226,12 +224,6 @@ namespace MeetMeet.Droid
 		
 		public partial class String
 		{
-			
-			// aapt resource value: 0x7f060006
-			public const int ApplicationName = 2131099654;
-			
-			// aapt resource value: 0x7f060005
-			public const int Hello = 2131099653;
 			
 			// aapt resource value: 0x7f060001
 			public const int day_name_format = 2131099649;

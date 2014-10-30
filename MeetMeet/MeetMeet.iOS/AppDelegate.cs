@@ -6,6 +6,8 @@ using MonoTouch.Foundation;
 using MonoTouch.UIKit;
 
 using Xamarin.Forms;
+using Xamarin.Forms.Labs.Services;
+using Xamarin.Forms.Labs;
 
 namespace MeetMeet.iOS {
   // The UIApplicationDelegate for the application. This class is responsible for launching the 
@@ -24,6 +26,13 @@ namespace MeetMeet.iOS {
     // You have 17 seconds to return from this method, or iOS will terminate your application.
     //
     public override bool FinishedLaunching(UIApplication app, NSDictionary options) {
+      // DONE: set up services
+      var resolverContainer = new SimpleContainer();
+      resolverContainer.Register<IDevice>(t => AppleDevice.CurrentDevice)
+        .Register<IDisplay>(t => t.Resolve<IDevice>().Display)
+        .Register<IDependencyContainer>(resolverContainer);
+      Resolver.SetResolver(resolverContainer.GetResolver());
+
       Forms.Init();
 
       window = new UIWindow(UIScreen.MainScreen.Bounds);

@@ -7,6 +7,8 @@ using System.Windows.Navigation;
 using Microsoft.Phone.Controls;
 using Microsoft.Phone.Shell;
 using MeetMeet.WinPhone.Resources;
+using Xamarin.Forms.Labs.Services;
+using Xamarin.Forms.Labs;
 
 namespace MeetMeet.WinPhone {
   public partial class App : Application {
@@ -51,6 +53,12 @@ namespace MeetMeet.WinPhone {
         PhoneApplicationService.Current.UserIdleDetectionMode = IdleDetectionMode.Disabled;
       }
 
+      // DONE: set up services
+      var resolverContainer = new SimpleContainer();
+      resolverContainer.Register<IDevice>(t => WindowsPhoneDevice.CurrentDevice)
+        .Register<IDisplay>(t => t.Resolve<IDevice>().Display)
+        .Register<IDependencyContainer>(resolverContainer);
+      Resolver.SetResolver(resolverContainer.GetResolver());
     }
 
     // Code to execute when the application is launching (eg, from Start)

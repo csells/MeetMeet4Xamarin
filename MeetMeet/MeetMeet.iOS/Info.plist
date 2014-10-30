@@ -28,5 +28,8 @@
     <string>com.yourcompany.MeetMeet</string>
     <key>CFBundleVersion</key>
     <string>1.0</string>
+    <!-- DONE -->
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Can I track your location</string>
   </dict>
 </plist>

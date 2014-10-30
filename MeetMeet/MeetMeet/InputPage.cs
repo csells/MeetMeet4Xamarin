@@ -140,13 +140,10 @@ namespace MeetMeet {
       loc2.PropertyChanged += async (sender, e) => {
         if (e.PropertyName == "Text") {
           if (loc2.Text.Length > 2) {
-            Debug.WriteLine("getting suggestions for: '{0}'", loc2.Text);
             var suggestions = (await this.geocoder.GetPlacesAutocomplete(loc2.Text)).ToArray();
             this.model.SetSuggestions(suggestions);
-            Debug.WriteLine("got {0} suggestions for: '{1}'", suggestions.Length, loc2.Text);
           }
           else {
-            Debug.WriteLine("clearing suggestions for: '{0}'", loc2.Text);
             this.model.SetSuggestions(null);
           }
         }

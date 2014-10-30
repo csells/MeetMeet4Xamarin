@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Xamarin.Forms;
-using Xamarin.Geolocation;
+using Xamarin.Forms.Labs.Services.Geolocation;
 
 namespace MeetMeet {
   public class Geocode {
@@ -108,7 +109,7 @@ namespace MeetMeet {
       return places;
     }
 
-    public async void LaunchMapApp(Place place) {
+    public void LaunchMapApp(Place place) {
       var name = Uri.EscapeUriString(place.Name);
 
 #if __IOS__
@@ -129,7 +130,7 @@ namespace MeetMeet {
       // e.g. bingmaps:?collection=point.36.116584_-115.176753_Caesars%20Palace
       var loc = string.Format("{0}_{1}", place.Location.Latitude, place.Location.Longitude);
       var request = string.Format("bingmaps:?collection=point.{0}_{1}", loc, name);
-      await Windows.System.Launcher.LaunchUriAsync(new Uri(request));
+      Windows.System.Launcher.LaunchUriAsync(new Uri(request)).AsTask().RunSynchronously();
 #else
       throw new Exception("No device type compile-time directive found");
 #endif
@@ -152,15 +153,9 @@ namespace MeetMeet {
     }
 
     public async Task<Geocode> GetCurrentLocation() {
-      // from https://components.xamarin.com/gettingstarted/xamarin.mobile
-#if __ANDROID__
-      Geolocator locator = null; // TODO new Geolocator(something!);
-#else
-      var locator = new Geolocator();
-#endif
-
-      var pos = await locator.GetPositionAsync(10000);
-      return new Geocode { Latitude = pos.Latitude, Longitude = pos.Longitude };
+      var geolocator = DependencyService.Get<IGeolocator>();
+      var loc = await geolocator.GetPositionAsync(10000);
+      return new Geocode { Latitude = loc.Latitude, Longitude = loc.Longitude };
     }
 
     public async Task<string> GetAddressForLocation(Geocode loc) {
@@ -171,6 +166,7 @@ namespace MeetMeet {
       var address = XDocument.Parse(xml).Element("GeocodeResponse").Element("result").Element("formatted_address").Value;
       return address;
     }
+
   }
 
 }
