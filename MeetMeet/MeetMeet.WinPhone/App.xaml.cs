@@ -7,8 +7,6 @@ using System.Windows.Navigation;
 using Microsoft.Phone.Controls;
 using Microsoft.Phone.Shell;
 using MeetMeet.WinPhone.Resources;
-using Xamarin.Forms.Labs.Services;
-using Xamarin.Forms.Labs;
 
 namespace MeetMeet.WinPhone {
   public partial class App : Application {
@@ -51,14 +49,9 @@ namespace MeetMeet.WinPhone {
         // Caution:- Use this under debug mode only. Application that disables user idle detection will continue to run
         // and consume battery power when the user is not using the phone.
         PhoneApplicationService.Current.UserIdleDetectionMode = IdleDetectionMode.Disabled;
-      }
 
-      // DONE: set up services
-      var resolverContainer = new SimpleContainer();
-      resolverContainer.Register<IDevice>(t => WindowsPhoneDevice.CurrentDevice)
-        .Register<IDisplay>(t => t.Resolve<IDevice>().Display)
-        .Register<IDependencyContainer>(resolverContainer);
-      Resolver.SetResolver(resolverContainer.GetResolver());
+        new Xamarin.Forms.Labs.Services.Geolocation.Geolocator();
+      }
     }
 
     // Code to execute when the application is launching (eg, from Start)

@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using Xamarin.Forms;
 using Xamarin.Forms.Labs.Controls;
@@ -13,7 +9,6 @@ namespace MeetMeet {
   class InputModel : INotifyPropertyChanged {
     Geocode currentLocation;
     string currentAddress;
-    ObservableCollection<object> suggestions = new ObservableCollection<object>();
     Exception currentLocationException;
 
     public Exception CurrentLocationException {
@@ -65,16 +60,6 @@ namespace MeetMeet {
       }
     }
 
-    public ObservableCollection<object> Suggestions {
-      get { return this.suggestions; }
-    }
-
-    public void SetSuggestions(IEnumerable<string> suggestions) {
-      this.suggestions.Clear();
-      if (suggestions == null) { return; }
-      foreach (var suggestion in suggestions) { this.suggestions.Add(suggestion); }
-    }
-
     public event PropertyChangedEventHandler PropertyChanged;
     void NotifyPropertyChanged([CallerMemberName] String propertyName = "") {
       Debug.Assert(!string.IsNullOrWhiteSpace(propertyName));
@@ -87,6 +72,7 @@ namespace MeetMeet {
   class InputPage : ContentPage {
     Geocoder geocoder = new Geocoder();
     InputModel model = new InputModel();
+    MyAutoCompleteView loc2;
 
     public InputPage() {
       this.Padding = 20;
@@ -96,10 +82,9 @@ namespace MeetMeet {
       loc1.SetBinding(Label.TextProperty, new Binding("CurrentLocationDisplay"));
 
       // from https://github.com/XLabs/Xamarin-Forms-Labs/wiki/AutoComplete
-      var loc2 = new AutoCompleteView {
+      loc2 = new MyAutoCompleteView {
         Placeholder = "enter location",
         ShowSearchButton = false,
-        Sugestions = model.Suggestions,
         SelectedCommand = new Command(() => { }),
       };
 
@@ -138,13 +123,17 @@ namespace MeetMeet {
       };
 
       loc2.PropertyChanged += async (sender, e) => {
-        if (e.PropertyName == "Text") {
+        if (e.PropertyName == "Text" && !object.ReferenceEquals(this.loc2.ListViewSugestions.SelectedItem, loc2.Text)) {
           if (loc2.Text.Length > 2) {
-            var suggestions = (await this.geocoder.GetPlacesAutocomplete(loc2.Text)).ToArray();
-            this.model.SetSuggestions(suggestions);
+            var suggestions = await this.geocoder.GetPlacesAutocompleteAsync(loc2.Text);
+            var asugg = this.loc2.AvailableSugestions;
+            asugg.Clear();
+            foreach (var s in suggestions) { asugg.Add(s); }
+            this.loc2.ListViewSugestions.IsVisible = asugg.Count > 0;
           }
           else {
-            this.model.SetSuggestions(null);
+            this.loc2.AvailableSugestions.Clear();
+            this.loc2.ListViewSugestions.IsVisible = false;
           }
         }
       };
@@ -157,7 +146,7 @@ namespace MeetMeet {
           var g1 = model.CurrentLocation;
           var g2 = await geocoder.GetGeocodeForLocation(loc2.Text);
           var g3 = geocoder.GetGreatCircleMidpoint(g1, g2);
-          var places = await geocoder.GetNearbyPlaces(g3, modePicker.Items[modePicker.SelectedIndex]);
+          var places = await geocoder.GetNearbyPlacesAsync(g3, modePicker.Items[modePicker.SelectedIndex]);
           var output = new OutputPage(places);
           await Navigation.PushAsync(output);
           progressText.Text = "";
@@ -176,9 +165,9 @@ namespace MeetMeet {
       base.OnAppearing();
 
       try {
-        var loc = await this.geocoder.GetCurrentLocation();
+        var loc = await this.geocoder.GetCurrentLocationAsync();
         this.model.CurrentLocation = loc;
-        var address = await this.geocoder.GetAddressForLocation(loc);
+        var address = await this.geocoder.GetAddressForLocationAsync(loc);
         this.model.CurrentAddress = address;
       }
       catch (Exception ex) {

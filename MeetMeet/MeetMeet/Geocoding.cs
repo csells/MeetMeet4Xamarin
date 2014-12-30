@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Xamarin.Forms;
 using Xamarin.Forms.Labs.Services.Geolocation;
+//using Xamarin.Forms.Labs.Services.Geolocation;
 
 namespace MeetMeet {
   public class Geocode {
@@ -68,7 +69,7 @@ namespace MeetMeet {
       return rad / (Math.PI / 180.0);
     }
 
-    public async Task<IEnumerable<string>> GetPlacesAutocomplete(string search) {
+    public async Task<IEnumerable<string>> GetPlacesAutocompleteAsync(string search) {
       // from: https://developers.google.com/places/documentation/autocomplete
       // e.g. https://maps.googleapis.com/maps/api/place/autocomplete/xml?input=Kirk&key=AddYourOwnKeyHere
       string request = string.Format("https://maps.googleapis.com/maps/api/place/autocomplete/xml?input={0}&key={1}", search, GetGoogleApiKey());
@@ -84,7 +85,7 @@ namespace MeetMeet {
       return suggestions;
     }
 
-    public async Task<IEnumerable<Place>> GetNearbyPlaces(Geocode g, string keyword) {
+    public async Task<IEnumerable<Place>> GetNearbyPlacesAsync(Geocode g, string keyword) {
       // from: https://developers.google.com/places/documentation/search
       // e.g. https://maps.googleapis.com/maps/api/place/nearbysearch/xml?location=46,-122&rankby=distance&keyword=coffee&key=AddYourOwnKeyHere
       string request = string.Format("https://maps.googleapis.com/maps/api/place/nearbysearch/xml?location={0},{1}&rankby=distance&keyword={2}&key={3}", g.Latitude, g.Longitude, keyword, GetGoogleApiKey());
@@ -152,13 +153,13 @@ namespace MeetMeet {
       }
     }
 
-    public async Task<Geocode> GetCurrentLocation() {
+    public async Task<Geocode> GetCurrentLocationAsync() {
       var geolocator = DependencyService.Get<IGeolocator>();
       var loc = await geolocator.GetPositionAsync(10000);
       return new Geocode { Latitude = loc.Latitude, Longitude = loc.Longitude };
     }
 
-    public async Task<string> GetAddressForLocation(Geocode loc) {
+    public async Task<string> GetAddressForLocationAsync(Geocode loc) {
       // from https://developers.google.com/maps/documentation/geocoding/#ReverseGeocoding
       // e.g. https://maps.googleapis.com/maps/api/geocode/xml?latlng=40.714224,-73.961452
       string request = string.Format("https://maps.googleapis.com/maps/api/geocode/xml?latlng={0},{1}", loc.Latitude, loc.Longitude);
